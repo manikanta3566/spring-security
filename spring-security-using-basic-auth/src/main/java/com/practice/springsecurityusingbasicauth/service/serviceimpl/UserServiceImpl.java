@@ -7,12 +7,19 @@ import com.practice.springsecurityusingbasicauth.repository.UserRepo;
 import com.practice.springsecurityusingbasicauth.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService , UserDetailsService {
 
     @Autowired
     private ModelMapper modelMapper;
@@ -22,12 +29,15 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RoleRepo roleRepo;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public User createUser(User user) {
         User user1 = new User();
         user1.setName(user.getName());
         user1.setEmail(user.getEmail());
-        user1.setPassword(user.getPassword());
+        user1.setPassword(passwordEncoder.encode(user.getPassword()));
         Role role = roleRepo.findById("101").orElseThrow(() -> new RuntimeException("role not found"));
         user1.getRoles().add(role);
         return userRepo.save(user1);
@@ -61,5 +71,21 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String id) {
         User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("user not found" + id));
         userRepo.delete(user);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepo.findByEmail(email);
+        if(user==null){
+            throw new UsernameNotFoundException("user not found by username "+email);
+        }
+        Set<Role> roles = user.getRoles();
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getName())
+                .password(user.getPassword())
+                .accountExpired(false)
+                .authorities(roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()))
+                .accountLocked(false)
+                .build();
     }
 }
