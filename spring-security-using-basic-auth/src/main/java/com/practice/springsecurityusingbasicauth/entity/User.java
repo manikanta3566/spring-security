@@ -21,12 +21,14 @@ public class User {
     private String name;
     private String email;
     private String password;
+    @Column(name = "deleted")
+    private boolean isDeleted=false;
     @ManyToMany( cascade = CascadeType.ALL,fetch = FetchType.EAGER)
-//    @JoinTable(
-//            name = "USER_ROLE",
-//            joinColumns = @JoinColumn(name = "USER_ID",referencedColumnName = "id"),
-//            inverseJoinColumns = @JoinColumn(name = "ROLE_ID",referencedColumnName = "id")
-//    )
+    @JoinTable(
+            name = "USER_ROLE",
+            joinColumns = @JoinColumn(name = "USER_ID",referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "ROLE_ID",referencedColumnName = "id")
+    )
     private Set<Role> roles=new HashSet<>();
 
     public User(){

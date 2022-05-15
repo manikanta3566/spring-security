@@ -70,7 +70,11 @@ public class UserServiceImpl implements UserService , UserDetailsService {
     @Override
     public void deleteUser(String id) {
         User user = userRepo.findById(id).orElseThrow(() -> new RuntimeException("user not found" + id));
-        userRepo.delete(user);
+        if(user.getEmail().equalsIgnoreCase("admin@gmail.com")){
+            throw new RuntimeException("user is "+user.getName());
+        }
+        user.setDeleted(true);
+        userRepo.save(user);
     }
 
     @Override
