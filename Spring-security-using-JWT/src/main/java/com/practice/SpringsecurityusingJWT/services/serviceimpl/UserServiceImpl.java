@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
         Set<Role> roles = user.getRoles();
         return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getName())
+                .username(user.getEmail())
                 .password(user.getPassword())
                 .accountExpired(false)
                 .authorities(roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList()))
